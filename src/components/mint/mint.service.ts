@@ -26,6 +26,10 @@ export class MintService {
       .pipe(map((response) => response.data));
   }
 
+  payWithJUK(account: string, URIraw: string) {
+    
+  }
+
   mint(account: string, URIraw: string): Subject<any> {
     const URI = xrpl.convertStringToHex(URIraw);
     this.sdk.payload
