@@ -1,16 +1,16 @@
-import { Injectable } from '@nestjs/common';
-import { XummSdk } from 'xumm-sdk';
-import { Subject, map } from 'rxjs';
-import { HttpService } from '@nestjs/axios';
-import * as xrpl from 'xrpl';
+import { Injectable } from '@nestjs/common'
+import { XummSdk } from 'xumm-sdk'
+import { Subject, map } from 'rxjs'
+import { HttpService } from '@nestjs/axios'
+import * as xrpl from 'xrpl'
 
 @Injectable()
 export class MintService {
-  private readonly sdk: XummSdk;
-  private emitter = new Subject();
+  private readonly sdk: XummSdk
+  private emitter = new Subject()
 
   constructor(private httpService: HttpService) {
-    this.sdk = new XummSdk(process.env.API_KEY, process.env.API_SECRET);
+    this.sdk = new XummSdk(process.env.API_KEY, process.env.API_SECRET)
   }
 
   async getTokenData(uuid: string) {
@@ -20,18 +20,14 @@ export class MintService {
           'X-API-Key': process.env.API_KEY,
           'X-API-Secret': process.env.API_SECRET,
           'Access-Control-Allow-Origin': '*',
-          Accept: 'application/json',
-        },
+          Accept: 'application/json'
+        }
       })
-      .pipe(map((response) => response.data));
-  }
-
-  payWithJUK(account: string, URIraw: string) {
-    
+      .pipe(map(response => response.data))
   }
 
   mint(account: string, URIraw: string): Subject<any> {
-    const URI = xrpl.convertStringToHex(URIraw);
+    const URI = xrpl.convertStringToHex(URIraw)
     this.sdk.payload
       .createAndSubscribe(
         {
@@ -39,16 +35,16 @@ export class MintService {
             TransactionType: 'NFTokenMint',
             Account: account,
             TokenTaxon: 0,
-            URI,
-          },
+            URI
+          }
         } as any,
-        (event) => {
-          this.emitter.next(JSON.stringify(event.data));
-        },
+        event => {
+          this.emitter.next(JSON.stringify(event.data))
+        }
       )
-      .then((result) => {
-        this.emitter.next(result.created.next.always);
-      });
-    return this.emitter;
+      .then(result => {
+        this.emitter.next(result.created.next.always)
+      })
+    return this.emitter
   }
 }

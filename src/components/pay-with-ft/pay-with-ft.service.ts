@@ -2,12 +2,10 @@ import { Injectable } from '@nestjs/common'
 import { XummSdk } from 'xumm-sdk'
 import { Subject, map } from 'rxjs'
 import { HttpService } from '@nestjs/axios'
-
-import * as dotenv from 'dotenv'
-dotenv.config()
+import * as xrpl from 'xrpl'
 
 @Injectable()
-export class AuthService {
+export class PayWithFtService {
   private readonly sdk: XummSdk
   private emitter = new Subject()
 
@@ -15,7 +13,7 @@ export class AuthService {
     this.sdk = new XummSdk(process.env.API_KEY, process.env.API_SECRET)
   }
 
-  async getUserData(uuid: string) {
+  async getTokenData(uuid: string) {
     return this.httpService
       .get(`https://xumm.app/api/v1/platform/payload/${uuid}`, {
         headers: {
@@ -28,17 +26,18 @@ export class AuthService {
       .pipe(map(response => response.data))
   }
 
-  auth(): Subject<any> {
+  pay(account: string): Subject<any> {
     this.sdk.payload
       .createAndSubscribe(
         {
-          custom_meta: {
-            instruction: 'Hello! Please sign!'
-          },
-          txjson: {
-            TransactionType: 'SignIn'
+          TransactionType: 'Payment',
+          Account: account,
+          Amount: {
+            currency: 'JUK',
+            value: '1',
+            issuer: account
           }
-        },
+        } as any,
         event => {
           this.emitter.next(JSON.stringify(event.data))
         }
